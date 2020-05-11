@@ -12,8 +12,12 @@ namespace LughNut.GEM
         public static Queue<string> recentMessages = new Queue<string>(10);
 
         private static Dictionary<string, ManagedEvent> allMessages_NoParams = new Dictionary<string, ManagedEvent>();
-        private static Dictionary<string, ManagedEvent_A<int>> allMessages_int = new Dictionary<string, ManagedEvent_A<int>>();
+        private static Dictionary<string, ManagedEvent_A<bool>> allMessages_bool = new Dictionary<string, ManagedEvent_A<bool>>();
         private static Dictionary<string, ManagedEvent_A<float>> allMessages_float = new Dictionary<string, ManagedEvent_A<float>>();
+        private static Dictionary<string, ManagedEvent_A<int>> allMessages_int = new Dictionary<string, ManagedEvent_A<int>>();
+        private static Dictionary<string, ManagedEvent_A<Vector2>> allMessages_v2 = new Dictionary<string, ManagedEvent_A<Vector2>>();
+        private static Dictionary<string, ManagedEvent_A<Vector3>> allMessages_v3 = new Dictionary<string, ManagedEvent_A<Vector3>>();
+        private static Dictionary<string, ManagedEvent_A<dynamic>> allMessages_generic = new Dictionary<string, ManagedEvent_A<dynamic>>();
 
         private static List<string> messageInspectorIgnoreList = new List<string>{
             "PerFrameUpdate",
@@ -30,86 +34,106 @@ namespace LughNut.GEM
                 return allKeys;
             }
         }
-        public string[] keys_Int
+        public string[] keys_bool
         {
             get
             {
-                string[] allKeys = new string[allMessages_int.Keys.Count];
-                allMessages_int.Keys.CopyTo(allKeys, 0);
-                return allKeys;
+                string[] allkeys = new string[allMessages_bool.Keys.Count];
+                allMessages_bool.Keys.CopyTo(allkeys, 0);
+                return allkeys;
             }
         }
-
-        public string[] keys_float
+        public string[] keys_generic
         {
             get
             {
-                string[] allKeys = new string[allMessages_float.Keys.Count];
-                allMessages_float.Keys.CopyTo(allKeys, 0);
-                return allKeys;
+                string[] allkeys = new string[allMessages_generic.Keys.Count];
+                allMessages_generic.Keys.CopyTo(allkeys, 0);
+                return allkeys;
             }
         }
-
         public ManagedEvent GetEvent(string key)
         {
             if (allMessages_NoParams.ContainsKey(key))
                 return allMessages_NoParams[key];
             else return null;
         }
-        public ManagedEvent_A<int> GetIntEvent(string key)
+
+        public ManagedEvent_A<dynamic> GetEventDynamic(string key)
         {
-            if (allMessages_int.ContainsKey(key))
-                return allMessages_int[key];
-            else return null;
+            return allMessages_generic[key];
         }
-        public ManagedEvent_A<float> GetFloatEvent(string key)
+
+        public ManagedEvent_A<bool> GetEventBool(string key)
         {
-            if (allMessages_int.ContainsKey(key))
-                return allMessages_float[key];
-            else return null;
+            return allMessages_bool[key];
         }
         public static void Message(string messageName)
         {
-            if (messageInspectorIgnoreList.Contains(messageName) == false)
-            {
-                recentMessages.Enqueue(messageName);
-                if (recentMessages.Count > 10)
-                    recentMessages.Dequeue();
-            }
+            //if (messageInspectorIgnoreList.Contains(messageName) == false)
+            //{
+            //    recentMessages.Enqueue(messageName);
+            //    if (recentMessages.Count > 10)
+            //        recentMessages.Dequeue();
+            //}
             if (allMessages_NoParams.ContainsKey(messageName))
                 allMessages_NoParams[messageName].Invoke();
             else
                 allMessages_NoParams.Add(messageName, new ManagedEvent());
         }
 
-       
-        public static void Message(string messageName, int param)
+       public static  void Message<T>(string messageName, T param)
         {
-            if (messageInspectorIgnoreList.Contains(messageName) == false)
+            //if (messageInspectorIgnoreList.Contains(messageName) == false)
+            //{
+            //    recentMessages.Enqueue(messageName + ": " + param);
+            //    if (recentMessages.Count > 10)
+            //        recentMessages.Dequeue();
+            //}
+            if (param is bool)
             {
-                recentMessages.Enqueue(messageName + ": " + param);
-                if (recentMessages.Count > 10)
-                    recentMessages.Dequeue();
+                if (allMessages_bool.ContainsKey(messageName))
+                    allMessages_bool[messageName].Invoke((bool)(object)param);
+                else
+                    allMessages_bool.Add(messageName, new ManagedEvent_A<bool>());
             }
-            if (allMessages_int.ContainsKey(messageName))
-                allMessages_int[messageName].Invoke(param);
-            else
-                allMessages_int.Add(messageName, new ManagedEvent_A<int>());
-        }
-
-        public static void Message(string messageName, float param)
-        {
-            if (messageInspectorIgnoreList.Contains(messageName) == false)
+            else if (param is float)
             {
-                recentMessages.Enqueue(messageName + ": " + param);
-                if (recentMessages.Count > 10)
-                    recentMessages.Dequeue();
+                if (allMessages_float.ContainsKey(messageName))
+                    allMessages_float[messageName].Invoke((float)(object)param);
+                else
+                    allMessages_float.Add(messageName, new ManagedEvent_A<float>());
             }
-            if (allMessages_float.ContainsKey(messageName))
-                allMessages_float[messageName].Invoke(param);
+            else if (param is int)
+            {
+                if (allMessages_int.ContainsKey(messageName))
+                    allMessages_int[messageName].Invoke((int)(object)param);
+                else
+                    allMessages_int.Add(messageName, new ManagedEvent_A<int>());
+            }
+            else if (param is Vector2)
+            {
+                if (allMessages_v2.ContainsKey(messageName))
+                    allMessages_v2[messageName].Invoke((Vector2)(object)param);
+                else
+                    allMessages_v2.Add(messageName, new ManagedEvent_A<Vector2>());
+            }
+            else if (param is Vector3)
+            {
+                if (allMessages_v3.ContainsKey(messageName))
+                    allMessages_v3[messageName].Invoke((Vector3)(object)param);
+                else
+                    allMessages_v3.Add(messageName, new ManagedEvent_A<Vector3>());
+            }
             else
-                allMessages_float.Add(messageName, new ManagedEvent_A<float>());
+            {
+                if (allMessages_generic.ContainsKey(messageName))
+                    allMessages_generic[messageName].Invoke(param);
+                else
+                    allMessages_generic.Add(messageName, new ManagedEvent_A<dynamic>());
+            }
         }
+        
 
         public static void Listen(string key, UnityAction listener)
         {
@@ -122,30 +146,71 @@ namespace LughNut.GEM
             }
 
         }
-        public static void Listen(string key, UnityAction<int> listener)
+        public static void Listen<T>(string key, UnityAction<T> listener)
         {
-            if (allMessages_int.ContainsKey(key))
-                allMessages_int[key].AddListener(listener);
+            if (listener is UnityAction<bool>)
+            {
+                if (allMessages_bool.ContainsKey(key))
+                    allMessages_bool[key].AddListener((UnityAction<bool>)(object)listener);
+                else
+                {
+                    allMessages_bool.Add(key, new ManagedEvent_A<bool>());
+                    allMessages_bool[key].AddListener((UnityAction<bool>)(object)listener);
+                }
+            }
+            else if (listener is UnityAction<float>)
+            {
+                if (allMessages_float.ContainsKey(key))
+                    allMessages_float[key].AddListener((UnityAction<float>)(object)listener);
+                else
+                {
+                    allMessages_float.Add(key, new ManagedEvent_A<float>());
+                    allMessages_float[key].AddListener((UnityAction<float>)(object)listener);
+                }
+            }
+            else if (listener is UnityAction<int>)
+            {
+                if (allMessages_int.ContainsKey(key))
+                    allMessages_int[key].AddListener((UnityAction<int>)(object)listener);
+                else
+                {
+                    allMessages_int.Add(key, new ManagedEvent_A<int>());
+                    allMessages_int[key].AddListener((UnityAction<int>)(object)listener);
+                }
+            }
+            else if (listener is UnityAction<Vector2>)
+            {
+                if (allMessages_v2.ContainsKey(key))
+                    allMessages_v2[key].AddListener((UnityAction<Vector2>)(object)listener);
+                else
+                {
+                    allMessages_v2.Add(key, new ManagedEvent_A<Vector2>());
+                    allMessages_v2[key].AddListener((UnityAction<Vector2>)(object)listener);
+                }
+            }
+            else if (listener is UnityAction<Vector3>)
+            {
+                if (allMessages_v3.ContainsKey(key))
+                    allMessages_v3[key].AddListener((UnityAction<Vector3>)(object)listener);
+                else
+                {
+                    allMessages_v3.Add(key, new ManagedEvent_A<Vector3>());
+                    allMessages_v3[key].AddListener((UnityAction<Vector3>)(object)listener);
+                }
+            }
             else
             {
-                allMessages_int.Add(key, new ManagedEvent_A<int>());
-                allMessages_int[key].AddListener(listener);
+                if (allMessages_generic.ContainsKey(key))
+                    allMessages_generic[key].AddListener((UnityAction<dynamic>)(object)listener);
+                else
+                {
+                    allMessages_generic.Add(key, new ManagedEvent_A<dynamic>());
+                    allMessages_generic[key].AddListener((UnityAction<dynamic>)(object)listener);
+                }
             }
 
         }
-
-        public static void Listen(string key, UnityAction<float> listener)
-        {
-            if (allMessages_float.ContainsKey(key))
-                allMessages_float[key].AddListener(listener);
-            else
-            {
-                allMessages_float.Add(key, new ManagedEvent_A<float>());
-                allMessages_float[key].AddListener(listener);
-            }
-
-        }
-
+        
         public static void StopListening(string key, UnityAction listener)
         {
             if (allMessages_NoParams.ContainsKey(key))
@@ -156,24 +221,61 @@ namespace LughNut.GEM
             }
 
         }
-        public static void StopListening(string key, UnityAction<int> listener)
+        public static void StopListening<T>(string key, UnityAction<T> listener)
         {
-            if (allMessages_int.ContainsKey(key))
+            if (listener is UnityAction<bool>)
             {
-                allMessages_int[key].RemoveListener(listener);
-                if (allMessages_int[key].ListenerCount == 0)
-                    allMessages_int.Remove(key);
+                if (allMessages_bool.ContainsKey(key))
+                {
+                    allMessages_bool[key].RemoveListener((UnityAction<bool>)(object)listener);
+                    if (allMessages_bool[key].ListenerCount == 0)
+                        allMessages_bool.Remove(key);
+                }
             }
-
-        }
-
-        public static void StopListening(string key, UnityAction<float> listener)
-        {
-            if (allMessages_float.ContainsKey(key))
+            else if (listener is UnityAction<float>)
             {
-                allMessages_float[key].RemoveListener(listener);
-                if (allMessages_float[key].ListenerCount == 0)
-                    allMessages_float.Remove(key);
+                if (allMessages_float.ContainsKey(key))
+                {
+                    allMessages_float[key].RemoveListener((UnityAction<float>)(object)listener);
+                    if (allMessages_float[key].ListenerCount == 0)
+                        allMessages_float.Remove(key);
+                }
+            }
+            else if (listener is UnityAction<int>)
+            {
+                if (allMessages_int.ContainsKey(key))
+                {
+                    allMessages_int[key].RemoveListener((UnityAction<int>)(object)listener);
+                    if (allMessages_int[key].ListenerCount == 0)
+                        allMessages_int.Remove(key);
+                }
+            }
+            else if (listener is UnityAction<Vector2>)
+            {
+                if (allMessages_v2.ContainsKey(key))
+                {
+                    allMessages_v2[key].RemoveListener((UnityAction<Vector2>)(object)listener);
+                    if (allMessages_v2[key].ListenerCount == 0)
+                        allMessages_v2.Remove(key);
+                }
+            }
+            else if (listener is UnityAction<Vector3>)
+            {
+                if (allMessages_v3.ContainsKey(key))
+                {
+                    allMessages_v3[key].RemoveListener((UnityAction<Vector3>)(object)listener);
+                    if (allMessages_v3[key].ListenerCount == 0)
+                        allMessages_v3.Remove(key);
+                }
+            }
+            else
+            {
+                if (allMessages_generic.ContainsKey(key))
+                {
+                    allMessages_generic[key].RemoveListener((UnityAction<dynamic>)(object)listener);
+                    if (allMessages_generic[key].ListenerCount == 0)
+                        allMessages_generic.Remove(key);
+                }
             }
 
         }
@@ -181,9 +283,8 @@ namespace LughNut.GEM
         private void OnDestroy()
         {
             allMessages_NoParams.Clear();
-            allMessages_int.Clear();
-            allMessages_float.Clear();
-            recentMessages.Clear();
+            allMessages_bool.Clear();
+            allMessages_generic.Clear();
         }
     }
 
@@ -221,23 +322,23 @@ namespace LughNut.GEM
                     for (int j = 0; j < thisEvent.TargetObjects.Length; j++)
                     {
                         EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.ObjectField((UnityEngine.Object)thisEvent.TargetObjects[j], typeof(UnityEngine.Object), true);
+                        EditorGUILayout.ObjectField((Object)thisEvent.TargetObjects[j], typeof(Object), true);
                         EditorGUILayout.LabelField(thisEvent.TargetMethods[j]);
                         EditorGUILayout.EndHorizontal();
                     }
                 }
             }
-            keys = m_eventManager.keys_Int;
+            keys = m_eventManager.keys_generic;
             for (int i = 0; i < keys.Length; i++)
             {
                 EditorGUILayout.LabelField(keys[i], EditorStyles.boldLabel);
-                ManagedEvent_A<int> thisEvent = m_eventManager.GetIntEvent(keys[i]);
+                ManagedEvent_A<dynamic> thisEvent = m_eventManager.GetEventDynamic(keys[i]);
                 if (thisEvent != null)
                 {
                     for (int j = 0; j < thisEvent.TargetObjects.Length; j++)
                     {
                         EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.ObjectField((UnityEngine.Component)thisEvent.TargetObjects[j], typeof(UnityEngine.Object), true);
+                        EditorGUILayout.ObjectField((Component)thisEvent.TargetObjects[j], typeof(Object), true);
                         EditorGUILayout.LabelField(thisEvent.TargetMethods[j]);
                         EditorGUILayout.EndHorizontal();
                     }

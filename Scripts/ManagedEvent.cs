@@ -42,7 +42,13 @@ namespace LughNut.GEM
         public int ListenerCount { get { return _listenerCount; } }
         public object[] TargetObjects { get { return objects.ToArray(); } }
         public string[] TargetMethods { get { return methodNames.ToArray(); } }
+        public T lastValue;
 
+        new public void Invoke(T arg0)
+        {
+            lastValue = arg0;
+            base.Invoke(arg0);
+        }
 
         new public void AddListener(UnityAction<T> call)
         {

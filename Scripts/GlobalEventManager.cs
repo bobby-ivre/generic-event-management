@@ -9,7 +9,6 @@ namespace LughNut.GEM
 {
     public class GlobalEventManager : MonoBehaviour
     {
-        public static Queue<string> recentMessages = new Queue<string>(10);
 
         private static Dictionary<string, ManagedEvent> allMessages_NoParams = new Dictionary<string, ManagedEvent>();
         private static Dictionary<string, ManagedEvent_A<bool>> allMessages_bool = new Dictionary<string, ManagedEvent_A<bool>>();
@@ -19,6 +18,9 @@ namespace LughNut.GEM
         private static Dictionary<string, ManagedEvent_A<Vector3>> allMessages_v3 = new Dictionary<string, ManagedEvent_A<Vector3>>();
         private static Dictionary<string, ManagedEvent_A<dynamic>> allMessages_generic = new Dictionary<string, ManagedEvent_A<dynamic>>();
 
+
+#if UNITY_EDITOR
+        public static Queue<string> recentMessages = new Queue<string>(10);
         private static List<string> messageInspectorIgnoreList = new List<string>{
             "PerFrameUpdate",
             "MinuteUpdate",
@@ -43,6 +45,42 @@ namespace LughNut.GEM
                 return allkeys;
             }
         }
+        public string[] keys_float
+        {
+            get
+            {
+                string[] allkeys = new string[allMessages_float.Keys.Count];
+                allMessages_float.Keys.CopyTo(allkeys, 0);
+                return allkeys;
+            }
+        }
+        public string[] keys_int
+        {
+            get
+            {
+                string[] allkeys = new string[allMessages_int.Keys.Count];
+                allMessages_int.Keys.CopyTo(allkeys, 0);
+                return allkeys;
+            }
+        }
+        public string[] keys_Vector2
+        {
+            get
+            {
+                string[] allkeys = new string[allMessages_v2.Keys.Count];
+                allMessages_v2.Keys.CopyTo(allkeys, 0);
+                return allkeys;
+            }
+        }
+        public string[] keys_Vector3
+        {
+            get
+            {
+                string[] allkeys = new string[allMessages_v3.Keys.Count];
+                allMessages_v3.Keys.CopyTo(allkeys, 0);
+                return allkeys;
+            }
+        }
         public string[] keys_generic
         {
             get
@@ -59,15 +97,46 @@ namespace LughNut.GEM
             else return null;
         }
 
-        public ManagedEvent_A<dynamic> GetEventDynamic(string key)
-        {
-            return allMessages_generic[key];
-        }
 
         public ManagedEvent_A<bool> GetEventBool(string key)
         {
-            return allMessages_bool[key];
+            if (allMessages_bool.ContainsKey(key))
+                return allMessages_bool[key];
+            return null;
         }
+        public ManagedEvent_A<float> GetEventFloat(string key)
+        {
+            if (allMessages_float.ContainsKey(key))
+                return allMessages_float[key];
+            return null;
+        }
+        public ManagedEvent_A<int> GetEventInt(string key)
+        {
+            if (allMessages_int.ContainsKey(key))
+                return allMessages_int[key];
+            return null;
+        }
+        public ManagedEvent_A<Vector2> GetEventV2(string key)
+        {
+            if (allMessages_v2.ContainsKey(key))
+                return allMessages_v2[key];
+            return null;
+        }
+        public ManagedEvent_A<Vector3> GetEventV3(string key)
+        {
+            if (allMessages_v3.ContainsKey(key))
+                return allMessages_v3[key];
+            return null;
+        }
+        public ManagedEvent_A<dynamic> GetEventDynamic(string key)
+        {
+            if (allMessages_generic.ContainsKey(key))
+                return allMessages_generic[key];
+            return null;
+        }
+
+
+#endif
         public static void Message(string messageName)
         {
             //if (messageInspectorIgnoreList.Contains(messageName) == false)
@@ -82,7 +151,7 @@ namespace LughNut.GEM
                 allMessages_NoParams.Add(messageName, new ManagedEvent());
         }
 
-       public static  void Message<T>(string messageName, T param)
+        public static void Message<T>(string messageName, T param)
         {
             //if (messageInspectorIgnoreList.Contains(messageName) == false)
             //{
@@ -95,45 +164,63 @@ namespace LughNut.GEM
                 if (allMessages_bool.ContainsKey(messageName))
                     allMessages_bool[messageName].Invoke((bool)(object)param);
                 else
+                {
                     allMessages_bool.Add(messageName, new ManagedEvent_A<bool>());
+                    allMessages_bool[messageName].Invoke((bool)(object)param);
+                }
             }
             else if (param is float)
             {
                 if (allMessages_float.ContainsKey(messageName))
                     allMessages_float[messageName].Invoke((float)(object)param);
                 else
+                {
                     allMessages_float.Add(messageName, new ManagedEvent_A<float>());
+                    allMessages_float[messageName].Invoke((float)(object)param);
+                }
             }
             else if (param is int)
             {
                 if (allMessages_int.ContainsKey(messageName))
                     allMessages_int[messageName].Invoke((int)(object)param);
                 else
+                {
                     allMessages_int.Add(messageName, new ManagedEvent_A<int>());
+                    allMessages_int[messageName].Invoke((int)(object)param);
+                }
             }
             else if (param is Vector2)
             {
                 if (allMessages_v2.ContainsKey(messageName))
                     allMessages_v2[messageName].Invoke((Vector2)(object)param);
                 else
+                {
                     allMessages_v2.Add(messageName, new ManagedEvent_A<Vector2>());
+                    allMessages_v2[messageName].Invoke((Vector2)(object)param);
+                }
             }
             else if (param is Vector3)
             {
                 if (allMessages_v3.ContainsKey(messageName))
                     allMessages_v3[messageName].Invoke((Vector3)(object)param);
                 else
+                {
                     allMessages_v3.Add(messageName, new ManagedEvent_A<Vector3>());
+                    allMessages_v3[messageName].Invoke((Vector3)(object)param);
+                }
             }
             else
             {
                 if (allMessages_generic.ContainsKey(messageName))
                     allMessages_generic[messageName].Invoke(param);
                 else
+                {
                     allMessages_generic.Add(messageName, new ManagedEvent_A<dynamic>());
+                    allMessages_generic[messageName].Invoke((dynamic)(object)param);
+                }
             }
         }
-        
+
 
         public static void Listen(string key, UnityAction listener)
         {
@@ -210,7 +297,7 @@ namespace LughNut.GEM
             }
 
         }
-        
+
         public static void StopListening(string key, UnityAction listener)
         {
             if (allMessages_NoParams.ContainsKey(key))
@@ -284,6 +371,10 @@ namespace LughNut.GEM
         {
             allMessages_NoParams.Clear();
             allMessages_bool.Clear();
+            allMessages_float.Clear();
+            allMessages_int.Clear();
+            allMessages_v2.Clear();
+            allMessages_v3.Clear();
             allMessages_generic.Clear();
         }
     }
@@ -328,13 +419,45 @@ namespace LughNut.GEM
                     }
                 }
             }
-            keys = m_eventManager.keys_generic;
+            DrawEvent<bool>(m_eventManager.keys_bool, typeof(bool));
+            DrawEvent<float>(m_eventManager.keys_float, typeof(float));
+            DrawEvent<int>(m_eventManager.keys_int, typeof(int));
+            DrawEvent<Vector2>(m_eventManager.keys_Vector2, typeof(Vector2));
+            DrawEvent<Vector3>(m_eventManager.keys_Vector3, typeof(Vector3));
+            DrawEvent<dynamic>(m_eventManager.keys_generic, null);
+
+        }
+
+        void DrawEvent<T>(string[] keys, System.Type type)
+        {
+            if (keys.Length > 0)
+                EditorGUILayout.LabelField("Events: " + type.ToString(), EditorStyles.boldLabel);
             for (int i = 0; i < keys.Length; i++)
             {
-                EditorGUILayout.LabelField(keys[i], EditorStyles.boldLabel);
-                ManagedEvent_A<dynamic> thisEvent = m_eventManager.GetEventDynamic(keys[i]);
+                ManagedEvent_A<T> thisEvent = null;
+                if (type == (typeof(bool)))
+                    thisEvent = (ManagedEvent_A<T>)(object)m_eventManager.GetEventBool(keys[i]);
+                else if (type == (typeof(float)))
+                    thisEvent = (ManagedEvent_A<T>)(object)m_eventManager.GetEventFloat(keys[i]);
+                else if (type == (typeof(int)))
+                    thisEvent = (ManagedEvent_A<T>)(object)m_eventManager.GetEventInt(keys[i]);
+                else if (type == (typeof(Vector2)))
+                    thisEvent = (ManagedEvent_A<T>)(object)m_eventManager.GetEventV2(keys[i]);
+                else if (type == (typeof(Vector3)))
+                    thisEvent = (ManagedEvent_A<T>)(object)m_eventManager.GetEventV3(keys[i]);
+                else
+                    thisEvent = (ManagedEvent_A<T>)(object)m_eventManager.GetEventDynamic(keys[i]);
+
                 if (thisEvent != null)
                 {
+                    EditorGUILayout.LabelField(keys[i] + ": " + thisEvent.lastValue, EditorStyles.miniBoldLabel);
+                    if (thisEvent.TargetObjects.Length > 0)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField("Object:");
+                        EditorGUILayout.LabelField("Method:");
+                        EditorGUILayout.EndHorizontal();
+                    }
                     for (int j = 0; j < thisEvent.TargetObjects.Length; j++)
                     {
                         EditorGUILayout.BeginHorizontal();
@@ -343,9 +466,10 @@ namespace LughNut.GEM
                         EditorGUILayout.EndHorizontal();
                     }
                 }
+
             }
         }
-    }
+}
 
 #endif
 }

@@ -1,22 +1,32 @@
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// Creation Date:	02/10/20
+// Author:				Bobby Greaney
+// Description:		An event messager that uses ManagedEvents to keep track of all events
+// --------------------------------------------------------------------------------------------------------------------
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Events;
+
 namespace LughNut.GEM
 {
-    public class GlobalEventManager : MonoBehaviour
-    {
 
-        private static Dictionary<string, ManagedEvent> allMessages_NoParams = new Dictionary<string, ManagedEvent>();
-        private static Dictionary<string, ManagedEvent_A<bool>> allMessages_bool = new Dictionary<string, ManagedEvent_A<bool>>();
-        private static Dictionary<string, ManagedEvent_A<float>> allMessages_float = new Dictionary<string, ManagedEvent_A<float>>();
-        private static Dictionary<string, ManagedEvent_A<int>> allMessages_int = new Dictionary<string, ManagedEvent_A<int>>();
-        private static Dictionary<string, ManagedEvent_A<Vector2>> allMessages_v2 = new Dictionary<string, ManagedEvent_A<Vector2>>();
-        private static Dictionary<string, ManagedEvent_A<Vector3>> allMessages_v3 = new Dictionary<string, ManagedEvent_A<Vector3>>();
-        private static Dictionary<string, ManagedEvent_A<dynamic>> allMessages_generic = new Dictionary<string, ManagedEvent_A<dynamic>>();
+	///<summary>
+	/// An event messager that uses ManagedEvents to keep track of all events
+	///</summary>
+	public class EventMessager : MonoBehaviour
+	{
+        public string messagerName;
+		protected Dictionary<string, ManagedEvent> allMessages_NoParams = new Dictionary<string, ManagedEvent>();
+		protected Dictionary<string, ManagedEvent_A<bool>> allMessages_bool = new Dictionary<string, ManagedEvent_A<bool>>();
+		protected Dictionary<string, ManagedEvent_A<float>> allMessages_float = new Dictionary<string, ManagedEvent_A<float>>();
+		protected Dictionary<string, ManagedEvent_A<int>> allMessages_int = new Dictionary<string, ManagedEvent_A<int>>();
+		protected Dictionary<string, ManagedEvent_A<Vector2>> allMessages_v2 = new Dictionary<string, ManagedEvent_A<Vector2>>();
+		protected Dictionary<string, ManagedEvent_A<Vector3>> allMessages_v3 = new Dictionary<string, ManagedEvent_A<Vector3>>();
 
 
 #if UNITY_EDITOR
@@ -81,15 +91,7 @@ namespace LughNut.GEM
                 return allkeys;
             }
         }
-        public string[] keys_generic
-        {
-            get
-            {
-                string[] allkeys = new string[allMessages_generic.Keys.Count];
-                allMessages_generic.Keys.CopyTo(allkeys, 0);
-                return allkeys;
-            }
-        }
+
         public ManagedEvent GetEvent(string key)
         {
             if (allMessages_NoParams.ContainsKey(key))
@@ -128,37 +130,35 @@ namespace LughNut.GEM
                 return allMessages_v3[key];
             return null;
         }
-        public ManagedEvent_A<dynamic> GetEventDynamic(string key)
-        {
-            if (allMessages_generic.ContainsKey(key))
-                return allMessages_generic[key];
-            return null;
-        }
 
 
 #endif
-        public static void Message(string messageName)
+        public void Message(string messageName)
         {
-            //if (messageInspectorIgnoreList.Contains(messageName) == false)
-            //{
-            //    recentMessages.Enqueue(messageName);
-            //    if (recentMessages.Count > 10)
-            //        recentMessages.Dequeue();
-            //}
+#if UNITY_EDITOR
+            if (messageInspectorIgnoreList.Contains(messageName) == false)
+            {
+                recentMessages.Enqueue(messageName);
+                if (recentMessages.Count > 10)
+                    recentMessages.Dequeue();
+            }
+#endif
             if (allMessages_NoParams.ContainsKey(messageName))
                 allMessages_NoParams[messageName].Invoke();
             else
                 allMessages_NoParams.Add(messageName, new ManagedEvent());
         }
 
-        public static void Message<T>(string messageName, T param)
+        public void Message<T>(string messageName, T param)
         {
-            //if (messageInspectorIgnoreList.Contains(messageName) == false)
-            //{
-            //    recentMessages.Enqueue(messageName + ": " + param);
-            //    if (recentMessages.Count > 10)
-            //        recentMessages.Dequeue();
-            //}
+#if UNITY_EDITOR
+            if (messageInspectorIgnoreList.Contains(messageName) == false)
+            {
+                recentMessages.Enqueue(messageName + ": " + param);
+                if (recentMessages.Count > 10)
+                    recentMessages.Dequeue();
+            }
+#endif
             if (param is bool)
             {
                 if (allMessages_bool.ContainsKey(messageName))
@@ -209,20 +209,10 @@ namespace LughNut.GEM
                     allMessages_v3[messageName].Invoke((Vector3)(object)param);
                 }
             }
-            else
-            {
-                if (allMessages_generic.ContainsKey(messageName))
-                    allMessages_generic[messageName].Invoke(param);
-                else
-                {
-                    allMessages_generic.Add(messageName, new ManagedEvent_A<dynamic>());
-                    allMessages_generic[messageName].Invoke((dynamic)(object)param);
-                }
-            }
         }
 
 
-        public static void Listen(string key, UnityAction listener)
+        public void Listen(string key, UnityAction listener)
         {
             if (allMessages_NoParams.ContainsKey(key))
                 allMessages_NoParams[key].AddListener(listener);
@@ -233,7 +223,7 @@ namespace LughNut.GEM
             }
 
         }
-        public static void Listen<T>(string key, UnityAction<T> listener)
+        public void Listen<T>(string key, UnityAction<T> listener)
         {
             if (listener is UnityAction<bool>)
             {
@@ -285,20 +275,10 @@ namespace LughNut.GEM
                     allMessages_v3[key].AddListener((UnityAction<Vector3>)(object)listener);
                 }
             }
-            else
-            {
-                if (allMessages_generic.ContainsKey(key))
-                    allMessages_generic[key].AddListener((UnityAction<dynamic>)(object)listener);
-                else
-                {
-                    allMessages_generic.Add(key, new ManagedEvent_A<dynamic>());
-                    allMessages_generic[key].AddListener((UnityAction<dynamic>)(object)listener);
-                }
-            }
 
         }
 
-        public static void StopListening(string key, UnityAction listener)
+        public void StopListening(string key, UnityAction listener)
         {
             if (allMessages_NoParams.ContainsKey(key))
             {
@@ -308,7 +288,7 @@ namespace LughNut.GEM
             }
 
         }
-        public static void StopListening<T>(string key, UnityAction<T> listener)
+        public void StopListening<T>(string key, UnityAction<T> listener)
         {
             if (listener is UnityAction<bool>)
             {
@@ -355,122 +335,20 @@ namespace LughNut.GEM
                         allMessages_v3.Remove(key);
                 }
             }
-            else
-            {
-                if (allMessages_generic.ContainsKey(key))
-                {
-                    allMessages_generic[key].RemoveListener((UnityAction<dynamic>)(object)listener);
-                    if (allMessages_generic[key].ListenerCount == 0)
-                        allMessages_generic.Remove(key);
-                }
-            }
 
         }
 
         private void OnDestroy()
         {
+#if UNITY_EDITOR
+            recentMessages.Clear();
+#endif
             allMessages_NoParams.Clear();
             allMessages_bool.Clear();
             allMessages_float.Clear();
             allMessages_int.Clear();
             allMessages_v2.Clear();
             allMessages_v3.Clear();
-            allMessages_generic.Clear();
         }
     }
-
-
-#if UNITY_EDITOR
-    [CustomEditor(typeof(GlobalEventManager))]
-    public class EventManagerInspector : Editor
-    {
-        private GlobalEventManager m_eventManager;
-        private void Awake()
-        {
-            m_eventManager = (GlobalEventManager)target;
-        }
-        public override void OnInspectorGUI()
-        {
-            Repaint();
-            base.OnInspectorGUI();
-            string[] recentMessages = GlobalEventManager.recentMessages.ToArray();
-            if (recentMessages.Length != 0)
-            {
-                string recentMessagesLabel = recentMessages[recentMessages.Length - 1];
-                for (int i = recentMessages.Length - 2; i > 0; i--)
-                {
-                    recentMessagesLabel += "\n" + recentMessages[i];
-                }
-                EditorGUILayout.TextArea(recentMessagesLabel);
-            }
-            string[] keys = m_eventManager.keys_noParams;
-            for (int i = 0; i < keys.Length; i++)
-            {
-                EditorGUILayout.LabelField(keys[i], EditorStyles.boldLabel);
-                ManagedEvent thisEvent = m_eventManager.GetEvent(keys[i]);
-                if (thisEvent != null)
-                {
-                    for (int j = 0; j < thisEvent.TargetObjects.Length; j++)
-                    {
-                        EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.ObjectField((Object)thisEvent.TargetObjects[j], typeof(Object), true);
-                        EditorGUILayout.LabelField(thisEvent.TargetMethods[j]);
-                        EditorGUILayout.EndHorizontal();
-                    }
-                }
-            }
-            DrawEvent<bool>(m_eventManager.keys_bool, typeof(bool));
-            DrawEvent<float>(m_eventManager.keys_float, typeof(float));
-            DrawEvent<int>(m_eventManager.keys_int, typeof(int));
-            DrawEvent<Vector2>(m_eventManager.keys_Vector2, typeof(Vector2));
-            DrawEvent<Vector3>(m_eventManager.keys_Vector3, typeof(Vector3));
-            DrawEvent<dynamic>(m_eventManager.keys_generic, null);
-
-        }
-
-        void DrawEvent<T>(string[] keys, System.Type type)
-        {
-            if (keys.Length > 0)
-                EditorGUILayout.LabelField("Events: " + type.ToString(), EditorStyles.boldLabel);
-            for (int i = 0; i < keys.Length; i++)
-            {
-                ManagedEvent_A<T> thisEvent = null;
-                if (type == (typeof(bool)))
-                    thisEvent = (ManagedEvent_A<T>)(object)m_eventManager.GetEventBool(keys[i]);
-                else if (type == (typeof(float)))
-                    thisEvent = (ManagedEvent_A<T>)(object)m_eventManager.GetEventFloat(keys[i]);
-                else if (type == (typeof(int)))
-                    thisEvent = (ManagedEvent_A<T>)(object)m_eventManager.GetEventInt(keys[i]);
-                else if (type == (typeof(Vector2)))
-                    thisEvent = (ManagedEvent_A<T>)(object)m_eventManager.GetEventV2(keys[i]);
-                else if (type == (typeof(Vector3)))
-                    thisEvent = (ManagedEvent_A<T>)(object)m_eventManager.GetEventV3(keys[i]);
-                else
-                    thisEvent = (ManagedEvent_A<T>)(object)m_eventManager.GetEventDynamic(keys[i]);
-
-                if (thisEvent != null)
-                {
-                    EditorGUILayout.LabelField(keys[i] + ": " + thisEvent.lastValue, EditorStyles.miniBoldLabel);
-                    if (thisEvent.TargetObjects.Length > 0)
-                    {
-                        EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.LabelField("Object:");
-                        EditorGUILayout.LabelField("Method:");
-                        EditorGUILayout.EndHorizontal();
-                    }
-                    for (int j = 0; j < thisEvent.TargetObjects.Length; j++)
-                    {
-                        EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.ObjectField((Component)thisEvent.TargetObjects[j], typeof(Object), true);
-                        EditorGUILayout.LabelField(thisEvent.TargetMethods[j]);
-                        EditorGUILayout.EndHorizontal();
-                    }
-                }
-
-            }
-        }
 }
-
-#endif
-}
-

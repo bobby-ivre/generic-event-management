@@ -1,9 +1,17 @@
+// --------------------------------------------------------------------------------------------------------------------
+// Creation Date:	02/10/20
+// Author:				Bobby Greaney
+// Description:		Managed Events for better inspectors and debugging
+// --------------------------------------------------------------------------------------------------------------------
+
 using System.Collections.Generic;
 using UnityEngine.Events;
 
 namespace LughNut.GEM
 {
-    //No Parameters
+    /// <summary>
+    /// Managed Events for better inspectors and debugging. No Parameters
+    /// </summary>
     public class ManagedEvent : UnityEvent
     {
         private int _listenerCount;
@@ -32,7 +40,9 @@ namespace LughNut.GEM
         }
     }
 
-    //Single Parameter
+    /// <summary>
+    /// Managed Events for better inspectors and debugging. Single Parameter
+    /// </summary>
     public class ManagedEvent_A<T> : UnityEvent<T>
     {
         private int _listenerCount;

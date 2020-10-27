@@ -4,6 +4,7 @@
 // Description:		Inspector for EventMessagers
 // --------------------------------------------------------------------------------------------------------------------
 
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 
@@ -96,3 +97,4 @@ namespace LughNut.GEM
         }
     }
 }
+#endif

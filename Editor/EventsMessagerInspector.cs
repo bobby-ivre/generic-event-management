@@ -22,7 +22,7 @@ namespace LughNut.GEM
         {
             Repaint();
             base.OnInspectorGUI();
-            string[] recentMessages = EventMessager.recentMessages.ToArray();
+            string[] recentMessages = m_eventManager.recentMessages.ToArray();
             if (recentMessages.Length != 0)
             {
                 string recentMessagesLabel = recentMessages[recentMessages.Length - 1];

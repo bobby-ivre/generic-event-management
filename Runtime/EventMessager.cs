@@ -30,7 +30,7 @@ namespace LughNut.GEM
 
 
 #if UNITY_EDITOR
-        public static Queue<string> recentMessages = new Queue<string>(10);
+        public Queue<string> recentMessages = new Queue<string>(10);
         private static List<string> messageInspectorIgnoreList = new List<string>{
             "PerFrameUpdate",
             "MinuteUpdate",
